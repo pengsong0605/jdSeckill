@@ -124,12 +124,32 @@ class JDSecKill(object):
 
             # cart link
             # 购物车连接
+            #两种情况：一个加入购物车、一个立即抢购
+            tags1 = soup.select('a#btn-reservation')
+            link1 = tags_val(tags1, key='href')
+            if link1=="#none":
+                resp1 = self.sess.get(
+                                    'http://yushou.jd.com/youshouinfo.action',
+                                    headers={
+                                        'Host': 'yushou.jd.com',
+                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'
+                                        },
+                                     params={
+                                        'callback': 'fetchJSON',
+                                        'sku': stock_id
+                                    }
+                                    )
+                n1 = resp1.text.find('(')
+                n2 = resp1.text.find(')')
+                rs = json.loads(resp1.text[n1 + 1:n2])     
+                if rs['url'][:2] == '//':
+                    link1 = 'http:' + rs['url']
+                
             tags = soup.select('a#InitCartUrl')
             link = tags_val(tags, key='href')
-
             if link[:2] == '//':
                 link = 'http:' + link
-            good_data['link'] = link
+            good_data['link'] = link or link1
 
         except Exception, e:
             print 'Exp {0} : {1}'.format(FuncName(), e)
